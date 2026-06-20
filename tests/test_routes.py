@@ -163,3 +163,48 @@ class TestAccountService(TestCase):
             response.headers["Access-Control-Allow-Origin"],
             "*"
         )
+    def test_read_account(self):
+        """It should Read a single Account"""
+
+        test_account = {
+            "name": "John Doe",
+            "email": "john@doe.com",
+            "address": "123 Main St.",
+            "phone_number": "555-1212"
+        }
+
+        response = self.client.post(
+            "/accounts",
+            json=test_account
+        )
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_201_CREATED
+        )
+
+        new_account = response.get_json()
+        account_id = new_account["id"]
+
+        response = self.client.get(f"/accounts/{account_id}")
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK
+        )
+
+        data = response.get_json()
+        self.assertEqual(data["name"], test_account["name"])
+        self.assertEqual(data["email"], test_account["email"])
+        self.assertEqual(data["address"], test_account["address"])
+        self.assertEqual(
+            data["phone_number"],
+            test_account["phone_number"]
+        )
+
+    def test_account_not_found(self):
+        """It should return 404 when account is not found"""
+
+        response = self.client.get("/accounts/0")
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_404_NOT_FOUND
+        )
